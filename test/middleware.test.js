@@ -17,6 +17,8 @@ describe('middleware', () => {
             password: 'test',
             salt: crypto.randomBytes(16)
         });
+        expect(tokenManager.on).to.be.a('function');
+
         app.use(tokenManager);
         app.get('/test', (req, res) => {
             expect(req.user.id).to.equal('test');

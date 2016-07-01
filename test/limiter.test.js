@@ -1,6 +1,8 @@
 /* global describe, it, beforeEach, afterEach */
 'use strict';
 
+var events = require('events');
+
 var expect = require('chai').expect;
 
 var Limiter = require('../lib/limiter');
@@ -19,6 +21,16 @@ describe('Limiter', () => {
             expect(Limiter._validateRate('5d')).to.equal(432000000);
             expect(Limiter._validateRate('6w')).to.equal(3628800000);
             expect(Limiter._validateRate.bind(null, '6x')).to.throw();
+        });
+    });
+
+    describe('#check()', () => {
+        it('should limit the queue length based on a timeout setting', () => {
+            var limiter = new Limiter({ timeout: 51, nodes: 1 });
+            for (let i in [0,1,2,3,4,5,6]) {
+                limiter.check({id: 1, rate: 10}, () => {});
+            }
+            expect(limiter.check.bind(limiter, {id: '1', rate: 10}, () => {})).to.throw(Error);
         });
     });
 });

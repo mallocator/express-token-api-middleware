@@ -55,7 +55,7 @@ request(app).get('/').set('Authorization', token).end();
 And that's all. Now let's dive into the API for more details:
 
 
-## Api
+# Api
 
 ### <constructor>(config)
 
@@ -67,7 +67,8 @@ var mw = tokens({
     nodes: 1,
     password: <needs to be set>,
     salt: <needs to be set>,
-    logger: null
+    logger: null,
+    timeout: undefined
 })
 ```
 
@@ -78,6 +79,8 @@ A look at the individual options:
 * password: This is the password used to encrypt tokens. A unique password is recommended.
 * salt:     The password will be salted to make it more secure. A longer salt means better randomness (recommended min length is 16 byte). You can generate on using the crypto library: ```crypto.randomBytes(16)```.
 * logger:   In case you want to know what's going on you can pass in a logger function that accepts a string as first parameter (e.g. console.log)
+* timeout:  Sets how long a request will be made to wait to fulfill the rate limit before it will be rejected with status 429 - Too Many Requests. Protects against overflowing request queues.
+* error:    A custom error handler that will be used instead of letting the middleware respond to requests. The signature is ```error(req, res, next, status, message)```.
 
 Note that password and salt are used to create a single key tha will encrypt all tokens. This tool does not use a key per user as this 
 would require much more memory or a database tie in. In most cases this should be safe enough, but if you require higher security a different
@@ -156,6 +159,45 @@ You can specify the number of requests the user has made on other nodes and ther
 this approach will work with your setup depends on how good the communication is set up between nodes. 
 
 In any case I would recommend to only use this if you know what you're doing and otherwise stick to the nodes configuration method.
+
+
+## Events
+
+The middleware also emits events in case you want to react to some of the possible error events. All events have the same signature and can 
+be used as such:
+
+```Javascript
+mw.on('missing', req => console.log('Missing auth token from request', req));
+```
+
+
+### missing(req)
+
+Triggered whenever the middleware rejects a request because no token has been found. The request object does not include the user object as 
+there is nothing to decrypt.
+
+
+### fail(req)
+
+Triggered whenever the middleware was unable to decrypt a token. The request object does not include the user object as we were unable to 
+decrypt it.
+
+
+### reject(req)
+
+Triggered whenever a user is rejected access to a specific path. The request object includes the decrypted user object.
+
+
+### timeout(req)
+
+The timeout event is triggered whenever the request queue is full and request get rejected. The request object includes the decrypted
+user object.
+
+
+### success(req)
+
+Triggered when a request has successfully been queued up and has already been processed or will be processed once the rate limit queue
+has caught up.
 
 
 ## Tests / Examples
