@@ -22,12 +22,17 @@ describe('Limiter', () => {
             expect(Limiter._validateRate('6w')).to.equal(3628800000);
             expect(Limiter._validateRate.bind(null, '6x')).to.throw();
         });
+
+        it('should reject rates that are less than 1', () => {
+            expect(Limiter._validateRate.bind(null, '0')).to.throw();
+            expect(Limiter._validateRate.bind(null, '-1ms')).to.throw();
+        });
     });
 
     describe('#check()', () => {
         it('should limit the queue length based on a timeout setting', () => {
             var limiter = new Limiter({ timeout: 51, nodes: 1 });
-            for (let i in [0,1,2,3,4,5,6]) {
+            for (let i in [0,1,2,3,4,5]) {
                 limiter.check({id: 1, rate: 10}, () => {});
             }
             expect(limiter.check.bind(limiter, {id: '1', rate: 10}, () => {})).to.throw(Error);
