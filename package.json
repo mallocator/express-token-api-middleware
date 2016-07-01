@@ -1,0 +1,47 @@
+{
+  "name": "express-token-api-middleware",
+  "version": "0.1.0",
+  "description": "An express middleware that allows to protect an api behind token authentication, rate limiting and endpoint permissions.",
+  "license": "Apache-2.0",
+  "author": "Ravi Gairola <mallox@pyxzl.net>",
+  "homepage": "https://github.com/mallocator/express-token-api-middleware#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mallocator/express-token-api-middleware.git"
+  },
+  "keywords": [
+    "express",
+    "token",
+    "rate",
+    "limit",
+    "permissions",
+    "api",
+    "rest",
+    "middleware",
+    "secure",
+    "auth"
+  ],
+  "bugs": {
+    "url": "https://github.com/mallocator/express-token-api-middleware/issues"
+  },
+  "main": "index.js",
+  "engine": {
+    "node": ">=6.0"
+  },
+  "peerDependencies": {
+    "express": "^4"
+  },
+  "devDependencies": {
+    "async": "^2.0.0-rc.6",
+    "chai": "^3",
+    "coveralls": "^2",
+    "express": "^4",
+    "istanbul": "^0.4",
+    "mocha": "^2",
+    "supertest": "^1"
+  },
+  "scripts": {
+    "test": "istanbul cover _mocha -- --recursive",
+    "test-travis": "istanbul cover _mocha --report lcovonly -- -R spec --recursive"
+  }
+}
