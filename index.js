@@ -8,6 +8,7 @@ var Tokens = require('./lib/tokens');
  * @typedef {Object} Middleware
  * @property {Limiter.nodes} nodes
  * @property {Tokens.encode} getToken
+ * @property {Limiter.notify} notify
  * @this Context
  */
 
@@ -70,6 +71,7 @@ function Middleware(config = {}) {
     };
     var middleware = handler.bind(context);
     middleware.getToken = context.tokens.encode.bind(context.tokens);
+    middleware.notify = context.limiter.notify.bind(context.limiter);
     middleware.__defineSetter__('nodes', val => context.config.nodes = val);
     return middleware;
 }

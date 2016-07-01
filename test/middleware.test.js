@@ -87,4 +87,37 @@ describe('middleware', () => {
             done(err);
         })
     });
+
+    it('should rate limit while being manually notified', done => {
+        var app = express();
+        var tokenManager = middleware({
+            password: 'test',
+            salt: crypto.randomBytes(16)
+        });
+        app.use(tokenManager);
+        app.get('/test', (req, res) => {
+            res.end();
+        });
+
+        var user = {
+            id: 'test',
+            rate: '100ms'
+        };
+        var token = tokenManager.getToken(user);
+
+        var start = process.hrtime();
+        async.series([
+            cb => {
+                tokenManager.notify(user);
+                cb();
+            },
+            cb => request(app).get('/test').set('Authorization', token).expect(200, cb)
+        ], err => {
+            var elapsed = process.hrtime(start);
+            var ms = (elapsed[0] * 1e9 + elapsed[1]) / 1000000;
+            expect(ms).to.be.gt(100);
+            expect(ms).to.be.lt(150);
+            done(err);
+        })
+    });
 });
