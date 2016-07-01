@@ -88,7 +88,7 @@ describe('middleware', () => {
         })
     });
 
-    it('should rate limit while being manually notified', done => {
+    it('should rate limit while being manually notified', () => {
         var app = express();
         var tokenManager = middleware({
             password: 'test',
@@ -119,5 +119,69 @@ describe('middleware', () => {
             expect(ms).to.be.lt(150);
             done(err);
         })
+    });
+
+    it('should rate limit while being manually notified even if a request is already being processed', () => {
+        var app = express();
+        var tokenManager = middleware({
+            password: 'test',
+            salt: crypto.randomBytes(16)
+        });
+        app.use(tokenManager);
+        app.get('/test', (req, res) => {
+            res.end();
+        });
+
+        var user = {
+            id: 'test',
+            rate: '100ms'
+        };
+        var token = tokenManager.getToken(user);
+
+        var start = process.hrtime();
+        async.series([
+            cb => request(app).get('/test').set('Authorization', token).expect(200, cb),
+            cb => {
+                tokenManager.notify(user);
+                cb();
+            },
+            cb => request(app).get('/test').set('Authorization', token).expect(200, cb)
+        ], err => {
+            var elapsed = process.hrtime(start);
+            var ms = (elapsed[0] * 1e9 + elapsed[1]) / 1000000;
+            expect(ms).to.be.gt(200);
+            expect(ms).to.be.lt(250);
+            done(err);
+        })
+    });
+
+    it('should not initialize if configuration properties are missing or invalid', () => {
+        try {
+            middleware({
+                password: 'test'
+            });
+            throw new Error('Test Failed');
+        } catch(e) {
+            expect(e.message).to.equal('Unable to initialize token api middleware without a password salt');
+        }
+
+        try {
+            middleware({
+                salt: crypto.randomBytes(16)
+            });
+            throw new Error('Test Failed');
+        } catch(e) {
+            expect(e.message).to.equal('Unable to initialize token api middleware without password');
+        }
+
+        try {
+            middleware({
+                password: 'test',
+                salt: 'too short'
+            });
+            throw new Error('Test Failed');
+        } catch(e) {
+            expect(e.message).to.equal('The given salt is too short, please generate one with at lest 16 bytes length');
+        }
     });
 });
