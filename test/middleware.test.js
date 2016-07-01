@@ -69,14 +69,21 @@ describe('middleware', () => {
             rate: '100ms'
         });
 
+        var token2 = tokenManager.getToken({
+            id: 'test2',
+            rate: '100ms'
+        });
+
         var start = process.hrtime();
         async.parallel([
             cb => request(app).get('/test').set('Authorization', token).expect(200, cb),
-            cb => request(app).get('/test').set('Authorization', token).expect(200, cb)
+            cb => request(app).get('/test').set('Authorization', token).expect(200, cb),
+            cb => request(app).get('/test').set('Authorization', token2).expect(200, cb)
         ], err => {
             var elapsed = process.hrtime(start);
-            var ms = (elapsed[0] * 1e9 + elapsed[1]) / 1000;
+            var ms = (elapsed[0] * 1e9 + elapsed[1]) / 1000000;
             expect(ms).to.be.gt(100);
+            expect(ms).to.be.lt(150);
             done(err);
         })
     });

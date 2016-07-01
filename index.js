@@ -27,6 +27,7 @@ var Tokens = require('./lib/tokens');
  * @property {string} password      The password used to encrypt and decrypt user tokens
  * @property {String|Buffer} salt   Used to generate unique passwords for this server. You can easily generate a salt using
  *                                  the nodejs crypto library with crypto.randomBytes(16).
+ * @property {function} [logger]    A logger function that accepts a log message as first parameter (e.g. console.log)
  */
 
 /**
@@ -60,14 +61,16 @@ function Middleware(config = {}) {
         }
     }
     config.param = config.param || 'token';
+    config.logger = config.logger || (() => {});
+    config.nodes = parseInt(config.nodes) || 1;
     var context = {
         config,
-        tokens: new Tokens(config.password, config.salt),
-        limiter: new Limiter(config.nodes)
+        tokens: new Tokens(config),
+        limiter: new Limiter(config)
     };
     var middleware = handler.bind(context);
     middleware.getToken = context.tokens.encode.bind(context.tokens);
-    middleware.nodes = context.limiter.nodes;
+    middleware.__defineSetter__('nodes', val => context.config.nodes = val);
     return middleware;
 }
 
@@ -81,13 +84,16 @@ function Middleware(config = {}) {
 function handler(req, res, next) {
     var token = req.header('Authorization') || req.params[this.config.param] || req.cookies && req.cookies[this.config.params];
     if (!token || !token.trim().length) {
+        this.config.logger('No token found on request');
         return res.status(401).end();
     }
     var user = this.tokens.decode(token);
     if (!user) {
+        this.config.logger('Unable to decode token on request');
         return res.status(403).end();
     }
     if (user.path && !user.path.test(req.originalUrl)) {
+        this.config.logger('The user has not been granted access to this endpoint: ' + req.originalUrl);
         return res.status(403).end();
     }
     req.user = user;
