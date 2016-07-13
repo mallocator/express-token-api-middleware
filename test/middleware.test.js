@@ -55,6 +55,25 @@ describe('middleware', () => {
         ], done);
     });
 
+    it('should create a token that is time limited', done => {
+        var app = express();
+        var tokenManager = middleware({
+            password: 'test',
+            salt: crypto.randomBytes(16)
+        });
+        app.use(tokenManager);
+        app.get('/test', (req, res) => res.end());
+
+        var token = tokenManager.getToken({
+            id: '1',
+            exp: Date.now() + 20
+        });
+
+        setTimeout(() => {
+            request(app).get('/test').set('Authorization', token).expect(403, done);
+        }, 50);
+    });
+
     it('should create a token that is rate limited', done => {
         var app = express();
         var tokenManager = middleware({

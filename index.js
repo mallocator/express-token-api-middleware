@@ -53,7 +53,8 @@ var Tokens = require('./lib/tokens');
  * @typedef {Object} TokenConfig
  * @property {string|number} id         The user id with which to identify the incoming user
  * @property {string|RegExp} [path]     An optional request path that the user is allowed to access (falsey means no restrictions)
- * @property {RateLimit|number} rate    A request rate limit that will prevent a user from sending to many requests per second
+ * @property {RateLimit|number} [rate]  A request rate limit that will prevent a user from sending to many requests per second
+ * @property {string|number|Date} [exp] An expiration date when the token will no longer be valid
  */
 
 /**
@@ -123,13 +124,19 @@ function handler(req, res, next) {
         this.config.logger(message);
         return this.config.error(req, res, next, 403, message);
     }
+    req.user = user;
     if (user.path && !user.path.test(req.originalUrl)) {
         this.emitter.emit('reject', req);
         let message = 'The user has not been granted access to this endpoint: ' + req.originalUrl;
         this.config.logger(message);
         return this.config.error(req, res, next, 403, message);
     }
-    req.user = user;
+    if (user.exp && user.exp < Date.now()) {
+        this.emitter.emit('expired', req);
+        let message = 'The user token has expired: ' + new Date(user.exp).toISOString();
+        this.config.logger(message);
+        return this.config.error(req, res, next, 403, message);
+    }
     try {
         this.limiter.check(user, next);
         this.emitter.emit('success', req);

@@ -99,6 +99,7 @@ var token = mw.getToken({
     id: 'user id',
     path: '/path',
     rate: 100,
+    exp: Date.now() + 86400000
     custom: 'whatever'
 });
 ```
@@ -107,7 +108,8 @@ Again a few options that need explaining:
 
 * id:   The unique user id e.g. from your database. This will be used to associate incoming requests to the same user.
 * path: A regular expression or string that will be treated as regex that decides whether the user is allowed to access an endpoint on the server.
-* rate: Define the minimum interval between requests that a user can make. This setting can be a number (in ms) or a string with a unit (e.g. "100ms")
+* rate: Define the minimum interval between requests that a user can make. This setting can be a number (in ms) or a string with a unit (e.g. "100ms").
+* exp:  Set an expiration rate for this token. This can be a number, a Date object or a string that Date.parse understands. 
 
 Rate limitation works in such a way that incoming requests will have a minimum interval of the given value. If 2 requests come in faster than that,
 the second request will be delayed until the desired rate has been reached. The rate format supports multiple units: ns, ms, s, m, h, d, w. Note
@@ -188,6 +190,11 @@ decrypt it.
 Triggered whenever a user is rejected access to a specific path. The request object includes the decrypted user object.
 
 
+### expired(req)
+
+Triggered whenever a user token has expired. The request object includes the decrypted user object. 
+
+
 ### timeout(req)
 
 The timeout event is triggered whenever the request queue is full and request get rejected. The request object includes the decrypted
@@ -210,5 +217,3 @@ For more examples and to check out the tests you can look at [middleware.test.js
 Some ideas to maybe work on in the future:
 
 * Rate limit based on number of calls instead of timing
-* Maximum wait time for requests (e.g. if delay is > 1 minute, reject request)
-* Events/custom handlers for different steps... but then again you can just use your own handler with the user object in the request chain.
