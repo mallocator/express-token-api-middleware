@@ -1,9 +1,7 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
+const expect = require('chai').expect;
 
-var expect = require('chai').expect;
-
-var Tokens = require('../lib/tokens');
+const Tokens = require('../lib/tokens');
 
 
 describe('Tokens', () => {
@@ -25,7 +23,7 @@ describe('Tokens', () => {
         });
 
         it('should parse a string as timestamp', () => {
-            var date = new Date(Date.now() + 1000);
+            let date = new Date(Date.now() + 1000);
             expect(Tokens._toDate(date.toISOString())).to.be.gt(Date.now());
             expect(Tokens._toDate(date.toUTCString())).to.be.gt(Date.now());
         });

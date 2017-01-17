@@ -1,11 +1,7 @@
 /* global describe, it, beforeEach, afterEach */
-'use strict';
-
-var events = require('events');
-
-var expect = require('chai').expect;
-
-var Limiter = require('../lib/limiter');
+const events = require('events');
+const expect = require('chai').expect;
+const Limiter = require('../lib/limiter');
 
 
 describe('Limiter', () => {
@@ -31,7 +27,7 @@ describe('Limiter', () => {
 
     describe('#check()', () => {
         it('should limit the queue length based on a timeout setting', () => {
-            var limiter = new Limiter({ timeout: 51, nodes: 1 });
+            let limiter = new Limiter({ timeout: 51, nodes: 1 });
             for (let i in [0,1,2,3,4,5]) {
                 limiter.check({id: 1, rate: 10}, () => {});
             }

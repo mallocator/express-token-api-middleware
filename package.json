@@ -1,6 +1,6 @@
 {
   "name": "express-token-api-middleware",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "An express middleware that allows to protect an api behind token authentication, rate limiting and endpoint permissions.",
   "license": "Apache-2.0",
   "author": "Ravi Gairola <mallox@pyxzl.net>",

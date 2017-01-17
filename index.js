@@ -1,10 +1,8 @@
-'use strict';
+const events = require('events');
+const util = require('util');
 
-var events = require('events');
-var util = require('util');
-
-var Limiter = require('./lib/limiter');
-var Tokens = require('./lib/tokens');
+const Limiter = require('./lib/limiter');
+const Tokens = require('./lib/tokens');
 
 
 /**
@@ -84,13 +82,13 @@ function Middleware(config = {}) {
     config.logger = config.logger || (() => {});
     config.nodes = parseInt(config.nodes) || 1;
     config.error = config.error || error;
-    var context = {
+    let context = {
         config,
         emitter: new events.EventEmitter(),
         tokens: new Tokens(config),
         limiter: new Limiter(config)
     };
-    var middleware = handler.bind(context);
+    let middleware = handler.bind(context);
     for (let prop in context.emitter) {
         if (typeof context.emitter[prop] == 'function') {
             middleware[prop] = context.emitter[prop].bind(context.emitter);
@@ -110,14 +108,14 @@ function Middleware(config = {}) {
  * @this Context
  */
 function handler(req, res, next) {
-    var token = req.header('Authorization') || req.params[this.config.param] || req.cookies && req.cookies[this.config.params];
+    let token = req.header('Authorization') || req.query[this.config.param] || req.cookies && req.cookies[this.config.params];
     if (!token || !token.trim().length) {
         this.emitter.emit('missing', req);
         let message = 'No token found on request';
         this.config.logger(message);
         return this.config.error(req, res, next, 401, message);
     }
-    var user = this.tokens.decode(token);
+    let user = this.tokens.decode(token);
     if (!user) {
         this.emitter.emit('fail', req);
         let message = 'Unable to decode token on request';
