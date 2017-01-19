@@ -29,6 +29,24 @@ describe('middleware', () => {
         request(app).get('/test').set('Authorization', token).expect(200).end(done);
     });
 
+    it('should support async responses', done => {
+        let app = express();
+        let tokenManager = middleware({
+            password: 'test',
+            salt: crypto.randomBytes(16)
+        });
+
+        app.get('/test', tokenManager, (req, res) => {
+            setTimeout(() => res.end(), 1);
+        });
+
+        let token = tokenManager.getToken({
+            id: '1'
+        });
+
+        request(app).get('/test').set('Authorization', token).expect(200).end(done);
+    });
+
     it('should support authentication using a parameter', done => {
         let app = express();
         let tokenManager = middleware({
@@ -124,6 +142,24 @@ describe('middleware', () => {
             expect(ms).to.be.lt(150);
             done(err);
         });
+    });
+
+    it('should support time limited tokens on async requests', done => {
+        let app = express();
+        let tokenManager = middleware({
+            password: 'test',
+            salt: crypto.randomBytes(16)
+        });
+        app.get('/test', tokenManager, (req, res) => {
+            setTimeout(() => res.end(), 10);
+        });
+
+        let token = tokenManager.getToken({
+            id: '1',
+            rate: '100ms'
+        });
+
+        request(app).get('/test').set('Authorization', token).expect(200, done);
     });
 
     it('should rate limit while being manually notified', done => {
