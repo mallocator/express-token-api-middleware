@@ -1,6 +1,6 @@
 {
   "name": "express-token-api-middleware",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "An express middleware that allows to protect an api behind token authentication, rate limiting and endpoint permissions.",
   "license": "Apache-2.0",
   "author": "Ravi Gairola <mallox@pyxzl.net>",
@@ -33,15 +33,15 @@
   },
   "devDependencies": {
     "async": "^2.0.0-rc.6",
-    "chai": "^3",
+    "chai": "^4",
     "coveralls": "^2",
     "express": "^4",
-    "istanbul": "^0.4",
     "mocha": "^2",
+    "nyc": "^11",
     "supertest": "^1"
   },
   "scripts": {
-    "test": "istanbul cover _mocha -- --recursive",
-    "test-travis": "istanbul cover _mocha --report lcovonly -- -R spec --recursive"
+    "test": "nyc --reporter=text --reporter=html mocha --recursive",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   }
 }
